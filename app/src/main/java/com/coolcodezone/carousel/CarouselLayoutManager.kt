@@ -40,6 +40,10 @@ class CarouselLayoutManager : LinearLayoutManager {
             return 0
     }
 
+    override fun canScrollVertically(): Boolean {
+        return true
+    }
+
     override fun onLayoutCompleted(state: RecyclerView.State?) {
         super.onLayoutCompleted(state)
         scaleChildren()

@@ -1,6 +1,8 @@
 package com.coolcodezone.carousel
 
+import android.animation.AnimatorSet
 import android.animation.ArgbEvaluator
+import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
@@ -19,10 +21,15 @@ import androidx.core.view.get
 import kotlin.math.min
 import kotlin.math.roundToInt
 import android.os.Build
+import android.view.animation.Animation
+import android.view.animation.LinearInterpolator
+import android.view.animation.ScaleAnimation
+import androidx.core.animation.doOnEnd
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.SnapHelper
 
 
-class FullscreenActivity : AppCompatActivity(){
+class FullscreenActivity : AppCompatActivity() {
 
     private lateinit var stationsRecyclerAdapter: StationsRecyclerAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
@@ -38,7 +45,7 @@ class FullscreenActivity : AppCompatActivity(){
         vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
         stationsRecyclerAdapter = StationsRecyclerAdapter()
-        viewManager = CarouselLayoutManager(this)
+        viewManager = LinearLayoutManager(this)
 
         snapHelper = LinearSnapHelper()
         snapHelper.attachToRecyclerView(stationsRecycler)
@@ -48,7 +55,7 @@ class FullscreenActivity : AppCompatActivity(){
             layoutManager = viewManager
         }
 
-        var prevSelectedPage: Int = 0
+        var prevSelectedPage = 0
         val snapPosChangeListener = object : OnSnapPositionChangeListener {
             override fun onSnapPositionChange(position: Int) {
                 if (position != prevSelectedPage) {
@@ -73,11 +80,36 @@ class FullscreenActivity : AppCompatActivity(){
     private fun updateSnappedView(position: Int) {
         val currentStation = stationsRecyclerAdapter.stationsList[position]
         val currentStationView = snapHelper.findSnapView(viewManager)!!
-        currentStationView.findViewById<TextView>(R.id.stationNameTextView)
-            .setTextColor(ContextCompat.getColor(applicationContext, R.color.activeStation))
+
+        val stationNameTextView = currentStationView.findViewById<TextView>(R.id.stationNameTextView)
+
+        stationNameTextView?.setTextColor(
+            ContextCompat.getColor(
+                applicationContext,
+                R.color.activeStation
+            )
+        )
+
         val bgDrawable = currentStationView.background ?: stationsRecycler.background
         val startColor = (bgDrawable as ColorDrawable).color
         animateColorChange(startColor, currentStation.color, stationsRecycler)
+        animateFontSizeChange(1.2f, 80f, stationNameTextView)
+    }
+
+    private fun animateFontSizeChange(endSize: Float, translateX: Float, stationNameTextView: TextView) {
+        val animationDuration = 250 // Animation duration in ms
+
+        val animatorScaleX = ObjectAnimator.ofFloat(stationNameTextView, View.SCALE_X, endSize)
+        val animatorScaleY = ObjectAnimator.ofFloat(stationNameTextView, View.SCALE_Y, endSize)
+        val translateAnimation = ObjectAnimator.ofFloat(stationNameTextView, View.TRANSLATION_X, translateX)
+
+        AnimatorSet().apply {
+            duration = animationDuration.toLong()
+            playTogether(animatorScaleX, animatorScaleY, translateAnimation)
+            start()
+        }.doOnEnd {
+            stationNameTextView.isSelected = !stationNameTextView.isSelected
+        }
     }
 
     fun animateColorChange(colorFrom: Int, colorTo: Int, view: View) {
@@ -94,13 +126,11 @@ class FullscreenActivity : AppCompatActivity(){
 
     fun resetOldView(prevSelectedPage: Int) {
         val preStationView = viewManager.findViewByPosition(prevSelectedPage)
-        preStationView?.findViewById<TextView>(R.id.stationNameTextView)
-            ?.setTextColor(
-                ContextCompat.getColor(
-                    applicationContext,
-                    R.color.inactiveStation
-                )
-            )
+        val stationNameTextView = preStationView?.findViewById<TextView>(R.id.stationNameTextView)
+        animateFontSizeChange(1f, 0f, stationNameTextView!!)
+        stationNameTextView.apply {
+            setTextColor(ContextCompat.getColor(applicationContext, R.color.inactiveStation))
+        }
     }
 
     private fun darkenColor(color: Int): Int {
@@ -118,10 +148,11 @@ class FullscreenActivity : AppCompatActivity(){
     }
 
     private fun shakeItBaby() {
-        val length:Long = 30
+        val length: Long = 30
         if (Build.VERSION.SDK_INT >= 26) {
             (getSystemService(Context.VIBRATOR_SERVICE) as Vibrator).vibrate(
-                VibrationEffect.createOneShot(length, 10))
+                VibrationEffect.createOneShot(length, 10)
+            )
         } else {
             (getSystemService(Context.VIBRATOR_SERVICE) as Vibrator).vibrate(length)
         }
