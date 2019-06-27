@@ -17,13 +17,10 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.view.get
 import kotlin.math.min
 import kotlin.math.roundToInt
 import android.os.Build
-import android.view.animation.Animation
-import android.view.animation.LinearInterpolator
-import android.view.animation.ScaleAnimation
+import android.util.Log
 import androidx.core.animation.doOnEnd
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.SnapHelper
@@ -32,7 +29,7 @@ import androidx.recyclerview.widget.SnapHelper
 class FullscreenActivity : AppCompatActivity() {
 
     private lateinit var stationsRecyclerAdapter: StationsRecyclerAdapter
-    private lateinit var viewManager: RecyclerView.LayoutManager
+    private lateinit var linearlayoutManager: RecyclerView.LayoutManager
     private lateinit var snapHelper: SnapHelper
 
     private lateinit var vibrator: Vibrator
@@ -45,29 +42,32 @@ class FullscreenActivity : AppCompatActivity() {
         vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
         stationsRecyclerAdapter = StationsRecyclerAdapter()
-        viewManager = LinearLayoutManager(this)
+
+        linearlayoutManager = LinearLayoutManager(this)
 
         snapHelper = LinearSnapHelper()
         snapHelper.attachToRecyclerView(stationsRecycler)
 
+        stationsRecycler.setPadding(0, getScreenHeight(this) / 2, 0, getScreenHeight(this) / 2)
         stationsRecycler.apply {
             adapter = stationsRecyclerAdapter
-            layoutManager = viewManager
+            layoutManager = linearlayoutManager
+            setHasFixedSize(true)
         }
 
         var prevSelectedPage = 0
         val snapPosChangeListener = object : OnSnapPositionChangeListener {
             override fun onSnapPositionChange(position: Int) {
-                if (position != prevSelectedPage) {
-                    resetOldView(prevSelectedPage)
+                val centerView = snapHelper.findSnapView(linearlayoutManager)
+                centerView?.let {
+                    if (prevSelectedPage != position)
+                        resetOldView(prevSelectedPage)
+                    updateSnappedView(position)
+
+                    shakeItBaby()
+                    prevSelectedPage = position
                 }
-
-                updateSnappedView(position)
-
-                shakeItBaby()
-                prevSelectedPage = position
             }
-
         }
 
         stationsRecycler.attachSnapHelperWithListener(
@@ -75,13 +75,17 @@ class FullscreenActivity : AppCompatActivity() {
             SnapOnScrollListener.Behavior.NOTIFY_ON_SCROLL,
             snapPosChangeListener
         )
+
+        stationsRecycler.scrollToPosition(1)
     }
 
     private fun updateSnappedView(position: Int) {
+        Log.e("ALALLA", position.toString())
         val currentStation = stationsRecyclerAdapter.stationsList[position]
-        val currentStationView = snapHelper.findSnapView(viewManager)!!
+        val currentStationView = snapHelper.findSnapView(linearlayoutManager)!!
 
-        val stationNameTextView = currentStationView.findViewById<TextView>(R.id.stationNameTextView)
+        val stationNameTextView =
+            currentStationView.findViewById<TextView>(R.id.stationNameTextView)
 
         stationNameTextView?.setTextColor(
             ContextCompat.getColor(
@@ -96,23 +100,26 @@ class FullscreenActivity : AppCompatActivity() {
         animateFontSizeChange(1.2f, 80f, stationNameTextView)
     }
 
-    private fun animateFontSizeChange(endSize: Float, translateX: Float, stationNameTextView: TextView) {
+    private fun animateFontSizeChange(
+        endSize: Float,
+        translateX: Float,
+        stationNameTextView: TextView
+    ) {
         val animationDuration = 250 // Animation duration in ms
 
         val animatorScaleX = ObjectAnimator.ofFloat(stationNameTextView, View.SCALE_X, endSize)
         val animatorScaleY = ObjectAnimator.ofFloat(stationNameTextView, View.SCALE_Y, endSize)
-        val translateAnimation = ObjectAnimator.ofFloat(stationNameTextView, View.TRANSLATION_X, translateX)
+        val translateAnimation =
+            ObjectAnimator.ofFloat(stationNameTextView, View.TRANSLATION_X, translateX)
 
         AnimatorSet().apply {
             duration = animationDuration.toLong()
             playTogether(animatorScaleX, animatorScaleY, translateAnimation)
             start()
-        }.doOnEnd {
-            stationNameTextView.isSelected = !stationNameTextView.isSelected
         }
     }
 
-    fun animateColorChange(colorFrom: Int, colorTo: Int, view: View) {
+    private fun animateColorChange(colorFrom: Int, colorTo: Int, view: View) {
         val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
         colorAnimation.duration = 250 // milliseconds
         colorAnimation.addUpdateListener {
@@ -125,7 +132,7 @@ class FullscreenActivity : AppCompatActivity() {
     }
 
     fun resetOldView(prevSelectedPage: Int) {
-        val preStationView = viewManager.findViewByPosition(prevSelectedPage)
+        val preStationView = linearlayoutManager.findViewByPosition(prevSelectedPage)
         val stationNameTextView = preStationView?.findViewById<TextView>(R.id.stationNameTextView)
         animateFontSizeChange(1f, 0f, stationNameTextView!!)
         stationNameTextView.apply {
@@ -148,7 +155,7 @@ class FullscreenActivity : AppCompatActivity() {
     }
 
     private fun shakeItBaby() {
-        val length: Long = 30
+        val length: Long = 10
         if (Build.VERSION.SDK_INT >= 26) {
             (getSystemService(Context.VIBRATOR_SERVICE) as Vibrator).vibrate(
                 VibrationEffect.createOneShot(length, 10)
