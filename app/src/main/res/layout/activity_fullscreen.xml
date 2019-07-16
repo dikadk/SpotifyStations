@@ -4,25 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".FullscreenActivity" >
+    tools:context=".FullscreenActivity">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/stationsRecycler"
-        android:focusable="true"
-        android:overScrollMode="never"
-        android:clipToPadding="false"
-        android:focusableInTouchMode="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#0099cc"
+        android:clipToPadding="false"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/station_item"
-        android:background="#0099cc"/>
+        tools:listitem="@layout/station_item" />
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/main_item_cutout"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:adjustViewBounds="false"
@@ -30,5 +30,118 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_sel_item_cutout" />
+
+    <View
+        android:id="@+id/playback_background"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:background="#0F463A"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/song_progressBar" />
+
+    <ProgressBar
+        android:id="@+id/song_progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="4dp"
+        android:progress="50"
+        android:progressTint="#FFFFFF"
+        app:layout_constraintBottom_toTopOf="@+id/albumCover"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/albumCover"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/sample_album" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="visible"
+        app:constraint_referenced_ids="like_btn,artist_name,song_name,play_pause_btn,next_btn,dislike_btn,albumCover,song_progressBar,bullet_name,playback_background" />
+
+    <ImageView
+        android:id="@+id/like_btn"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/dislike_btn"
+        app:layout_constraintStart_toEndOf="@+id/albumCover"
+        app:layout_constraintTop_toBottomOf="@+id/song_name"
+        app:srcCompat="@drawable/like_off" />
+
+    <ImageView
+        android:id="@+id/dislike_btn"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/like_btn"
+        app:layout_constraintEnd_toStartOf="@+id/play_pause_btn"
+        app:layout_constraintStart_toEndOf="@+id/like_btn"
+        app:srcCompat="@drawable/dislike_off" />
+
+    <ImageView
+        android:id="@+id/play_pause_btn"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/like_btn"
+        app:layout_constraintEnd_toStartOf="@+id/next_btn"
+        app:layout_constraintStart_toEndOf="@+id/dislike_btn"
+        app:srcCompat="@drawable/play" />
+
+    <ImageView
+        android:id="@+id/next_btn"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/like_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/play_pause_btn"
+        app:srcCompat="@drawable/next" />
+
+    <TextView
+        android:id="@+id/song_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Miami"
+        android:textColor="#FFFFFF"
+        app:layout_constraintBottom_toTopOf="@+id/like_btn"
+        app:layout_constraintEnd_toStartOf="@+id/bullet_name"
+        app:layout_constraintStart_toEndOf="@+id/albumCover"
+        app:layout_constraintStart_toStartOf="@+id/like_btn"
+        app:layout_constraintTop_toTopOf="@+id/playback_background" />
+
+    <TextView
+        android:id="@+id/bullet_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:layout_marginEnd="2dp"
+        android:text="\u2022"
+        app:layout_constraintEnd_toStartOf="@+id/artist_name"
+        app:layout_constraintStart_toEndOf="@+id/song_name"
+        app:layout_constraintTop_toTopOf="@+id/song_name" />
+
+    <TextView
+        android:id="@+id/artist_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="The Foals"
+        android:textColor="#0E0D0D"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/bullet_name"
+        app:layout_constraintTop_toTopOf="@+id/song_name" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

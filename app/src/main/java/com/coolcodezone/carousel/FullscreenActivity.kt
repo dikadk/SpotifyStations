@@ -5,6 +5,7 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.ColorStateList
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -21,6 +22,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import android.os.Build
 import android.util.Log
+import android.view.Menu
 import androidx.core.animation.doOnEnd
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.SnapHelper
@@ -30,7 +32,7 @@ class FullscreenActivity : AppCompatActivity() {
 
     private lateinit var stationsRecyclerAdapter: StationsRecyclerAdapter
     private lateinit var linearlayoutManager: RecyclerView.LayoutManager
-    private lateinit var snapHelper: SnapHelper
+    private lateinit var snapHelper: LinearSnapHelper
 
     private lateinit var vibrator: Vibrator
 
@@ -38,6 +40,10 @@ class FullscreenActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_fullscreen)
+
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+        supportActionBar?.setIcon(R.drawable.plus)
+        supportActionBar?.title = "  Add Station"
 
         vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
@@ -77,6 +83,11 @@ class FullscreenActivity : AppCompatActivity() {
         )
 
         stationsRecycler.scrollToPosition(1)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.settings_menu, menu)
+        return true
     }
 
     private fun updateSnappedView(position: Int) {
@@ -124,8 +135,10 @@ class FullscreenActivity : AppCompatActivity() {
         colorAnimation.duration = 250 // milliseconds
         colorAnimation.addUpdateListener {
             view.setBackgroundColor(it.animatedValue as Int)
-            supportActionBar?.setBackgroundDrawable(ColorDrawable(it.animatedValue as Int))
+            val colorDrawable = ColorDrawable(it.animatedValue as Int)
+            supportActionBar?.setBackgroundDrawable(colorDrawable)
             window.statusBarColor = darkenColor(it.animatedValue as Int)
+            playback_background?.background = colorDrawable
             it.startDelay = 500
         }
         colorAnimation.start()
@@ -158,7 +171,7 @@ class FullscreenActivity : AppCompatActivity() {
         val length: Long = 10
         if (Build.VERSION.SDK_INT >= 26) {
             (getSystemService(Context.VIBRATOR_SERVICE) as Vibrator).vibrate(
-                VibrationEffect.createOneShot(length, 10)
+                VibrationEffect.createOneShot(length, VibrationEffect.DEFAULT_AMPLITUDE)
             )
         } else {
             (getSystemService(Context.VIBRATOR_SERVICE) as Vibrator).vibrate(length)
